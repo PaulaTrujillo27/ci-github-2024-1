@@ -79,7 +79,7 @@ Ejecutando la aplicación nos muestra lo siguiente:
 
 ## Creación de secrets en github 
 
-Esto lo haremos para guardar nuestro username y password de Dockerhub, ya que, como son datos sensibkes, es necesario:
+Esto lo haremos para guardar nuestro username y password de Dockerhub, ya que, como son datos sensibles, es necesario:
 
 ![image](https://github.com/PaulaTrujillo27/ci-github-2024-1/assets/71205932/2f86e504-998d-4cef-ac25-13ce60450f48)
 
