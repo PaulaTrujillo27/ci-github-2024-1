@@ -69,3 +69,85 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+# Paso a paso de despliegue continuo
+
+Como primera medida verificamos construimos y desplegamos la aplicación la cual utiliza React, una biblioteca de JavaScript para construir interfaces de usuario, y Create React App.
+Ejecutando la aplicación nos muestra lo siguiente:
+
+![image](https://github.com/PaulaTrujillo27/ci-github-2024-1/assets/71205932/8006a177-a307-4c83-90de-56e413453c6e)
+
+## Creación de secrets en github 
+
+Esto lo haremos para guardar nuestro username y password de Dockerhub, ya que, como son datos sensibkes, es necesario:
+
+![image](https://github.com/PaulaTrujillo27/ci-github-2024-1/assets/71205932/2f86e504-998d-4cef-ac25-13ce60450f48)
+
+
+## Creación Dockerfile
+
+Creamos un archivo en el código llamado Dockerfile, el cual tendrá la siguiente estructura:
+
+```
+FROM node:20.5.1-alpine
+RUN mkdir -p /app
+WORKDIR /app
+COPY . .
+RUN npm cache clean --force
+RUN npm install
+RUN npm run build
+EXPOSE 3000
+ENTRYPOINT ["npm", "run", "start"]
+```
+
+## Github Actions
+
+Para agilizar la contención y despliegue de nuestra aplicación, se usará GitHub Actions. Esta plataforma nos brinda la capacidad de crear flujos de trabajo automatizados que se desencadenan ante eventos particulares, tales como cambios de código o actualizaciones en los repositorios.
+
+A continuación la estructura del archivo yaml de configuración para Github Actions:
+
+```
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+ 
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v3
+    - name: Docker Setup Buildx
+      uses: docker/setup-buildx-action@v3.0.0
+    - name: Docker Login
+      uses: docker/login-action@v1
+      with:
+            username: ${{ secrets.DOCKER_USERNAME }}
+            password: ${{ secrets.DOCKER_PASSWORD}}
+    - name: Build and Push Docker image
+      uses: docker/build-push-action@v5.0.0
+      with:
+          context: .  # Ruta al contexto de construcción (puede ser el directorio actual)
+          file: ./Dockerfile  # Ruta al Dockerfile
+          push: true  # Habilitar el empuje de la imagen
+          tags: ${{ secrets.DOCKER_USERNAME }}/node-ci:latest  # Nombre y etiqueta de la imagen
+      env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+```
+
+## Ejecución del flujo
+
+Teniendo correctamente configurado lo anterior, podemos ver ejecutado correctamente el flujo:
+
+![image](https://github.com/PaulaTrujillo27/ci-github-2024-1/assets/71205932/19a7aedc-0407-481a-a18a-c2cfa0911938)
+
+## Finalmente
+
+Se puede ver la imagen de la aplicación en nuestro Dockerhub:
+![image](https://github.com/PaulaTrujillo27/ci-github-2024-1/assets/71205932/d5b03abe-27d8-4885-bbda-c6247e06fee0)
+
+
